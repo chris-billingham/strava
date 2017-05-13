@@ -1,11 +1,13 @@
-library(devtools)
-install_github("fawda123/rStrava")
+# library(devtools)
+# install_github("fawda123/rStrava")
 
 library(RJSONIO)
 library(rStrava)
 library(plyr)
 library(ggplot2)
 library(zoo)
+library(lubridate)
+
 
 app_name <- 'R_Interaction' # chosen by user
 app_client_id  <- '14839' # an integer, assigned by Strava
@@ -24,18 +26,27 @@ my_acts <- get_activity_list(stoken)
 
 total_acts <- length(my_acts)
 
-activity_list <- as.data.frame(my_acts[[1]]["id"])
 
 # best efforts sort
 
-for (i in 2:total_acts) {
-  activity_list <- cbind(activity_list, as.data.frame(my_acts[[i]]["id"]))
+get_activities <- function(list_name, list_length)
+{
+  for (i in 1:list_length) {
+    if(exists("activity_list"))
+    {
+      activity_list <- cbind(activity_list, as.data.frame(list_name[[i]]["id"]))
+    } else {
+      activity_list <- as.data.frame(list_name[[1]]["id"])
+    }
+  }
+  activity_list <- as.data.frame(t(activity_list),stringsAsFactors = FALSE)
+  row.names(activity_list) <- NULL
+  colnames(activity_list) <- c("activity_id")
+  activity_list$V1 <- as.numeric(activity_list$V1)
+  return(activity_list)
 }
 
-activity_list <- as.data.frame(t(activity_list),stringsAsFactors = FALSE)
-
-row.names(activity_list) <- NULL
-activity_list$V1 <- as.numeric(activity_list$V1)
+act_df <- get_activities(my_acts, total_acts)
 
 for (p in 1:total_acts) {
 
@@ -93,6 +104,7 @@ write(export2, "test2.json")
 iy <- RJSONIO::fromJSON("test2.json")
 
 # process latlng
+print(act_id)
 
 latlng <- iy[[1]]['data'][1]
 latlng_df <- t(as.data.frame(latlng))
@@ -112,6 +124,8 @@ distance_df <- as.data.frame(distance)
 rownames(distance_df) <- NULL
 colnames(distance_df) <- c("distance")
 
+if(length(iy)==9)
+{
 altitude <- iy[[4]]['data']
 altitude_df <- as.data.frame(altitude)
 rownames(altitude_df) <- NULL
@@ -141,9 +155,48 @@ speed <- iy[[9]]['data']
 speed_df <- as.data.frame(speed)
 rownames(speed_df) <- NULL
 colnames(speed_df) <- c("speed")
+} else
+{
+  altitude <- iy[[4]]['data']
+  altitude_df <- as.data.frame(altitude)
+  rownames(altitude_df) <- NULL
+  colnames(altitude_df) <- c("altitude")
+  
+  hr_df <- as.data.frame(rep(NA,length(latlng)))
+  rownames(hr_df) <- NULL
+  colnames(hr_df) <- c("hr")
+  
+  cadence_df <- as.data.frame(rep(NA,length(latlng)))
+  rownames(cadence_df) <- NULL
+  colnames(cadence_df) <- c("cadence")
+  
+  grade <- iy[[5]]['data']
+  grade_df <- as.data.frame(grade)
+  rownames(grade_df) <- NULL
+  colnames(grade_df) <- c("grade")
+  
+  moving <- iy[[6]]['data']
+  moving_df <- as.data.frame(moving)
+  rownames(moving_df) <- NULL
+  colnames(moving_df) <- c("moving")
+  
+  speed <- iy[[7]]['data']
+  speed_df <- as.data.frame(speed)
+  rownames(speed_df) <- NULL
+  colnames(speed_df) <- c("speed")
+}
 
 activity_df <- cbind(activity_id, latlng_df, time_df, distance_df, altitude_df, hr_df, cadence_df, grade_df, moving_df, speed_df)
 
 return(activity_df)
 }
+
+# do all
+
+all_list <- lapply(act_df$V1,read_stream)
+
+all_stream_df <- rbind.fill(all_list)
+
+# Now to cross reference the best efforts with locations
+# and look for commonalities
 
