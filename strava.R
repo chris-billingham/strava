@@ -26,7 +26,6 @@ my_acts <- get_activity_list(stoken)
 
 total_acts <- length(my_acts)
 
-
 # best efforts sort
 
 get_activities <- function(list_name, list_length)
@@ -42,7 +41,7 @@ get_activities <- function(list_name, list_length)
   activity_list <- as.data.frame(t(activity_list),stringsAsFactors = FALSE)
   row.names(activity_list) <- NULL
   colnames(activity_list) <- c("activity_id")
-  activity_list$V1 <- as.numeric(activity_list$V1)
+  activity_list[,1] <- as.numeric(activity_list[,1])
   return(activity_list)
 }
 
@@ -50,7 +49,7 @@ act_df <- get_activities(my_acts, total_acts)
 
 for (p in 1:total_acts) {
 
-  current_activity <- activity_list[p,1]  
+  current_activity <- act_df[p,1]  
 
 latest <- get_activity(current_activity, stoken)
 if(latest[["type"]] == "Ride" || latest[["type"]] == "Hike")
@@ -193,7 +192,7 @@ return(activity_df)
 
 # do all
 
-all_list <- lapply(act_df$V1,read_stream)
+all_list <- lapply(act_df[,1],read_stream)
 
 all_stream_df <- rbind.fill(all_list)
 
