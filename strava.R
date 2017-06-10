@@ -98,9 +98,12 @@ abe$year_mon <- as.yearmon(abe$start_date)
 read_stream <- function(act_id)
 {
 import_l <- get_streams(stoken, act_id, types = list('time','latlng','distance','altitude','velocity_smooth','heartrate','cadence','moving','grade_smooth'))
-export2 <- toJSON(import_l)
+
+#this bit is rubbish
+
+export2 <- toJSON(import_l, digits = 10)
 write(export2, "test2.json")
-iy <- RJSONIO::fromJSON("test2.json")
+iy <- fromJSON("test2.json")
 
 # process latlng
 print(act_id)
@@ -108,9 +111,9 @@ print(act_id)
 latlng <- iy[[1]]['data'][1]
 latlng_df <- t(as.data.frame(latlng))
 rownames(latlng_df) <- NULL
-colnames(latlng_df) <- c("lat","lng")
+colnames(latlng_df) <- c("lat","lon")
 
-activity_id <- as.data.frame(rep(act_id,length(latlng_df)))
+activity_id <- as.data.frame(rep(act_id,length(latlng_df)/2))
 colnames(activity_id) <- c("activity_id")
 
 time <- iy[[2]]['data']
@@ -198,4 +201,6 @@ all_stream_df <- rbind.fill(all_list)
 
 # Now to cross reference the best efforts with locations
 # and look for commonalities
+
+
 
