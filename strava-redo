@@ -1,0 +1,48 @@
+libary(rlist)
+
+vars <- list.map(iy, type)
+data <- list.map(iy, data)
+
+# extract colnames
+
+vars <- unlist(vars)
+
+# this is currently two stage which is process the latlng
+# then process the rest
+# but at least it deals with all sizes of data
+# use dplyr bind_rows
+
+# latlng
+
+latlng <- as.data.frame(t(as.data.frame(data[1])))
+rownames(latlng) <- NULL
+colnames(latlng) <- c("lat","lng")
+
+# process the rest function
+
+process_data <- function(data_l)
+{
+
+# this bit doesn't work correctly this is annoying
+# why won't it transpose the dataframe when i apply
+
+  if(length(data_l[[1]][[1]])==2)
+  {
+    df <- as.data.frame(t(as.data.frame(data_l)))
+    #rownames(df) <- NULL
+    colnames(df) <- NULL
+  } else
+  {
+    df <- as.data.frame(data_l)
+    colnames(df) <- NULL
+    
+  }
+  return(df)
+}
+
+test <- lapply(data[2:length(data)], process_data)
+stream_df <- rbind.fill(as.data.frame(test))
+colnames(stream_df) <- vars[2:length(vars)]
+stream_df <- cbind(latlng, stream_df)
+
+
