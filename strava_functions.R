@@ -118,6 +118,8 @@ process_best_efforts <- function(current_act)
     best_e <- as.data.frame(unlist(latest[["best_efforts"]][1]))
     best_e <- as.data.frame(t(best_e), stringsAsFactors = FALSE)
     
+    if(best_length > 1)
+    {
     for (i in 2:length(latest[["best_efforts"]]))
     {
       best_f <- as.data.frame(t(unlist(latest[["best_efforts"]][i])), stringsAsFactors = FALSE)
@@ -134,7 +136,9 @@ process_best_efforts <- function(current_act)
       } else {
       all_best_efforts <- best_e
       }
-    
+    } else {
+      
+    }
       abe <- all_best_efforts
       
       abe$elapsed_time <- as.numeric(abe$elapsed_time)
