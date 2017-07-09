@@ -49,7 +49,7 @@ read_stream <- function(act_id)
   # process the stream
   
   # print(act_id)
- 
+  
   curr_act <- which(act_df$activity_id == act_id)
   
   
@@ -69,9 +69,9 @@ read_stream <- function(act_id)
   
   if(vars[1]=="latlng")
   {
-  latlng <- as.data.frame(t(as.data.frame(data[1])))
-  rownames(latlng) <- NULL
-  colnames(latlng) <- c("lat","lng")
+    latlng <- as.data.frame(t(as.data.frame(data[1])))
+    rownames(latlng) <- NULL
+    colnames(latlng) <- c("lat","lng")
   }
   # process the rest function
   
@@ -82,79 +82,80 @@ read_stream <- function(act_id)
   {
     stream_df <- cbind(activity_id,stream_df)
   } else {
-      stream_df <- cbind(activity_id, latlng, stream_df)
+    stream_df <- cbind(activity_id, latlng, stream_df)
   }
-  setTkProgressBar(pb, curr_act, label=paste(round(curr_act/all_act*100, 0),"% done"))
-  
+  if(exists("pb")) {
+    setTkProgressBar(pb, curr_act, label=paste(round(curr_act/all_act*100, 0),"% done"))
+  }
   return(stream_df)
 }
 
 process_best_efforts <- function(current_act)
 {
   
-    latest <- get_activity(current_act, stoken)
-    curr_act <- which(act_df$activity_id == current_act)
-    best_length <- as.numeric(length(latest[["best_efforts"]]))
-    if (best_length == 0) {
-      abe <- data.frame(id = character(),
-                        resource_state = character(),
-                        name = character(),
-                        activity.id = character(),
-                        activity.resource_state = character(),
-                        athelete.id = character(),
-                        athelete.resource_state = character(),
-                        elapsed_time = double(),
-                        moving_time = double(),
-                        start_date = character(),
-                        start_date_local = character(),
-                        distance = double(),
-                        start_index = double(),
-                        end_index = double(),
-                        moving_mins = double(),
-                        year_mon = double(),
-                        stringsAsFactors = FALSE)
-      
-    } else {
+  latest <- get_activity(current_act, stoken)
+  curr_act <- which(act_df$activity_id == current_act)
+  best_length <- as.numeric(length(latest[["best_efforts"]]))
+  if (best_length == 0) {
+    abe <- data.frame(id = character(),
+                      resource_state = character(),
+                      name = character(),
+                      activity.id = character(),
+                      activity.resource_state = character(),
+                      athelete.id = character(),
+                      athelete.resource_state = character(),
+                      elapsed_time = double(),
+                      moving_time = double(),
+                      start_date = character(),
+                      start_date_local = character(),
+                      distance = double(),
+                      start_index = double(),
+                      end_index = double(),
+                      moving_mins = double(),
+                      year_mon = double(),
+                      stringsAsFactors = FALSE)
+    
+  } else {
     best_e <- as.data.frame(unlist(latest[["best_efforts"]][1]))
     best_e <- as.data.frame(t(best_e), stringsAsFactors = FALSE)
     
     if(best_length > 1)
     {
-    for (i in 2:length(latest[["best_efforts"]]))
-    {
-      best_f <- as.data.frame(t(unlist(latest[["best_efforts"]][i])), stringsAsFactors = FALSE)
-      best_e <- rbind.fill(best_e, best_f)
-    }
-    
-    row.names(best_e) <- NULL
-    best_e$moving_time <- as.numeric(best_e$moving_time)
-    best_e$moving_mins <- best_e$moving_time / 60
-    
-    if(exists("all_best_efforts")) 
+      for (i in 2:length(latest[["best_efforts"]]))
       {
-      all_best_efforts <- rbind.fill(all_best_efforts,best_e)
+        best_f <- as.data.frame(t(unlist(latest[["best_efforts"]][i])), stringsAsFactors = FALSE)
+        best_e <- rbind.fill(best_e, best_f)
+      }
+      
+      row.names(best_e) <- NULL
+      best_e$moving_time <- as.numeric(best_e$moving_time)
+      best_e$moving_mins <- best_e$moving_time / 60
+      
+      if(exists("all_best_efforts")) 
+      {
+        all_best_efforts <- rbind.fill(all_best_efforts,best_e)
       } else {
-      all_best_efforts <- best_e
+        all_best_efforts <- best_e
       }
     } else {
       
     }
-      abe <- all_best_efforts
-      
-      abe$elapsed_time <- as.numeric(abe$elapsed_time)
-      abe$moving_time <- as.numeric(abe$moving_time)
-      abe$start_date <- ymd_hms(abe$start_date)
-      abe$start_date_local <- ymd_hms(abe$start_date_local)
-      abe$distance <- as.numeric(abe$distance)
-      abe$start_index <- as.numeric(abe$start_index)
-      abe$end_index <- as.numeric(abe$end_index)
-      abe$year_mon <- as.yearmon(abe$start_date)
-    }
-
+    abe <- all_best_efforts
     
-  setTkProgressBar(pb, curr_act, label=paste(round(curr_act/all_act*100, 0),"% done"))
+    abe$elapsed_time <- as.numeric(abe$elapsed_time)
+    abe$moving_time <- as.numeric(abe$moving_time)
+    abe$start_date <- ymd_hms(abe$start_date)
+    abe$start_date_local <- ymd_hms(abe$start_date_local)
+    abe$distance <- as.numeric(abe$distance)
+    abe$start_index <- as.numeric(abe$start_index)
+    abe$end_index <- as.numeric(abe$end_index)
+    abe$year_mon <- as.yearmon(abe$start_date)
+  }
+  
+  
+  if(exists("pb"))
+     {
+       setTkProgressBar(pb, curr_act, label=paste(round(curr_act/all_act*100, 0),"% done"))
+      }
   return(abe)
 }
-
-
-
