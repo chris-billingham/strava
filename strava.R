@@ -44,6 +44,7 @@ all_best <- lapply(act_df[,1],process_best_efforts)
 all_best_df <- rbind.fill(all_best)
 
 close(pb)
+rm(pb)
 
 # create a DF with all data from all activity streams
 
@@ -54,6 +55,7 @@ all_list <- lapply(act_df[,1],read_stream)
 all_stream_df <- rbind.fill(all_list)
 
 close(pb)
+rm(pb)
 
 # Now to cross reference the best efforts with locations
 # and look for commonalities
