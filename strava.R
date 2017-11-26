@@ -11,7 +11,7 @@ library(lubridate)
 library(rlist)
 library(tcltk)
 
-
+# hi
 app_name <- 'R_Interaction' # chosen by user
 app_client_id  <- '14839' # an integer, assigned by Strava
 app_secret <- 'e73a3f650bbe1ea6a0b0ab9c40f983384d309b63' # an alphanumeric secret, assigned by Strava
