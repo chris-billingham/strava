@@ -151,11 +151,6 @@ process_best_efforts <- function(current_act)
     abe$end_index <- as.numeric(abe$end_index)
     abe$year_mon <- as.yearmon(abe$start_date)
   }
-  
-  
-  if(exists("pb"))
-     {
-       setTkProgressBar(pb, curr_act, label=paste(round(curr_act/all_act*100, 0),"% done"))
-      }
+
   return(abe)
 }
