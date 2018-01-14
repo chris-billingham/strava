@@ -78,3 +78,35 @@ tidy_stream <- function(id) {
   # fin
   return(stream_df)
 }
+
+tidy_weather <- function(id) {
+  id_test <- id
+  
+  lat <- all_stream %>% 
+    filter(id == id, row_number() == 1) %>% 
+    select(lat) %>% 
+    as.numeric()
+  
+  lng <- all_stream %>% 
+    filter(id == id, row_number() == 1) %>% 
+    select(lng) %>% 
+    as.numeric()
+  
+  start_datetime <- run_summary %>% 
+    filter(id == id_test) %>% 
+    select(start_date) %>% 
+    as.character() %>%
+    as_datetime() %>%
+    round_date("hour")
+  
+  # pull the forecast at the nearest point to the start of the run
+  forecast <- get_forecast_for(lat, lng, start_datetime, units = "uk2")
+  
+  # filter it for the start and add in the id
+  weather_start <- forecast$hourly %>% 
+    filter(time == start_datetime) %>%
+    mutate(id = id)
+  
+  return(weather_start)
+  
+}

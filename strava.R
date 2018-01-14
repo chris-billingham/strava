@@ -4,9 +4,11 @@ library(jsonlite)
 library(rStrava)
 library(tidyverse)
 library(pbapply)
+library(lubridate)
+library(darksky)
 
 # setup accessing strave
-app_name <- Sys.getenv("app_name") # chosen by usery
+app_name <- Sys.getenv("app_name") # chosen by Strava
 app_client_id  <- Sys.getenv("app_client_id") # an integer, assigned by Strava
 app_secret <- Sys.getenv("app_secret") # an alphanumeric secret, assigned by Strava
 
@@ -34,26 +36,32 @@ all_best <- map_df(run_summary$id, tidy_best_efforts) %>%
 all_stream <- pblapply(run_summary$id, tidy_stream) %>%
   bind_rows()
 
+# some light visualisations
+all_stream %>% 
+  semi_join(run_summary[1:100,], by = c("id")) %>% 
+  ggplot(aes(lng, lat)) + 
+    geom_point(aes(size = 1)) + 
+    facet_wrap(~id, scales = "free") +
+    theme(axis.text.x = element_blank(),
+          axis.text.y = element_blank())
+
+# let's combine strava with dark sky
+# ok i've written that as a function
+# let's get it all
+
+all_weather <- pblapply(run_summary$id, tidy_weather) %>%
+  bind_rows()
+
+# some other stuff
+
+# meters per second into miles per minute
+all_stream %<>% mutate(pace = 26.8224 / velocity_smooth)
+
+# just calculate it based on distance and time
+run_summary %<>% mutate(pace = (elapsed_time / 60) / (distance*0.6214))
 
 
-# Now to cross reference the best efforts with locations
-# and look for commonalities
 
-seq(Sys.Date()-10, Sys.Date(), "1 day") %>% 
-  map(~get_forecast_for(53.2519, -1.9375, units = "uk2", .x)) %>% 
-  map_df("hourly") %>% 
-  ggplot(aes(x=time, y=temperature)) +
-  geom_line()
-
-london_year <- seq(Sys.Date()-730, Sys.Date(), "1 day") %>% 
-  map(~get_forecast_for(51.5011, -0.14128, units = "uk2", .x))
-
-buxton_y_hours <- buxton_year %>%
-  map_df("hourly") %>% 
-  ggplot(aes(x=time, y=temperature)) +
-  geom_line()
-
-london_hours_2y <- london_year %>% map_df("hourly")
 
 test <- postcodes %>% 
   mutate(post_outward = str_extract(postcodes$Postcode, "([^ ]+)")) %>%
