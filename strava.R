@@ -17,20 +17,23 @@ stoken <- httr::config(token = strava_oauth(app_name, app_client_id, app_secret)
 my_acts <- get_activity_list(stoken)
 
 # create an activity summary then only look at Runs
-act_summary <- compile_activities(my_acts)
-act_summary %<>% filter(type == "Run")
+run_summary <- compile_activities(my_acts) %>%
+  filter(type == "Run")
 
 # get all the best efforts for every activity and add the start dates
-all_best <- pblapply(act_summary$id, best_efforts) %>% 
+# let's do it two ways
+all_best <- pblapply(run_summary$id, tidy_best_efforts) %>% 
   bind_rows() %>%
-  left_join(act_summary[,c("id","start_date")])
+  left_join(run_summary[,c("id","start_date")])
 
+all_best <- map_df(run_summary$id, tidy_best_efforts) %>%
+  left_join(run_summary[,c("id","start_date")])
 
 
 # create a DF with all data from all activity streams
-all_list <- lapply(act_df[,1],read_stream)
+all_stream <- pblapply(run_summary$id, tidy_stream) %>%
+  bind_rows()
 
-all_stream_df <- rbind.fill(all_list)
 
 
 # Now to cross reference the best efforts with locations
