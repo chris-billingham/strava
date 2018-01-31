@@ -18,6 +18,9 @@ stoken <- httr::config(token = strava_oauth(app_name, app_client_id, app_secret)
 # get a list of all my activities
 my_acts <- get_activity_list(stoken)
 
+# ths is a note
+
+
 # create an activity summary then only look at Runs
 run_summary <- compile_activities(my_acts) %>%
   filter(type == "Run")
