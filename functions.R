@@ -36,7 +36,11 @@ return(all_efforts)
 
 tidy_stream <- function(id) {
   # import the stream from strava
+  
   stream <- get_streams(stoken, id, types = list('time','latlng','distance','altitude','velocity_smooth','heartrate','cadence','moving','grade_smooth'))
+  
+  # start the clock so we don't hit the rate limit
+  start <- Sys.time()
   
   # how many variables are we processing
   vars <- length(stream)
@@ -75,7 +79,10 @@ tidy_stream <- function(id) {
     stream_df <- bind_cols(stream_df, data)
   }
   
-  # fin
+  # pause if this has taken longer than 1.5 seconds
+  if(as.double(Sys.time() - start) < 1.5) {
+    Sys.sleep(1.5-(as.double(Sys.time() - start)))
+  }
   return(stream_df)
 }
 
