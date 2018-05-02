@@ -1,3 +1,5 @@
+# this whole bit needs conversion into purrr
+
 # process all the best efforts for a single activity
 tidy_best_efforts <- function(id) {
 

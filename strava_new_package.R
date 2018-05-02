@@ -1,3 +1,7 @@
+# devtools::install_github("marcusvolz/strava")
+# devtools::install_github("marcusvolz/ggart")
+# devtools::install_github("AtherEnergy/ggTimeSeries")
+
 library(tidyverse)
 library(strava)
 library(ggart)
