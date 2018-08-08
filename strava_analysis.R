@@ -1,4 +1,13 @@
 library(tidyverse)
+library(magrittr)
+
+all_best %>% 
+  filter(!is.na(pr_rank)) %>% 
+  ggplot(aes(start_date, elapsed_time, colour = pr_rank)) + 
+    geom_point() + 
+    facet_wrap( ~distance, scales = "free")
+
+
 
 # work out the bearing for each data point
 run_bearing <- append(0,sapply(2:(nrow(all_stream)), function(i){
