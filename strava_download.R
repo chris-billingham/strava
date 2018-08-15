@@ -10,19 +10,16 @@ library(darksky)
 library(janitor)
 library(magrittr)
 
-# setup accessing strave
-app_name <- Sys.getenv("strava_app_name") # chosen by Strava
-app_client_id  <- Sys.getenv("strava_app_client_id") # an integer, assigned by Strava
-app_secret <- Sys.getenv("strava_app_secret") # an alphanumeric secret, assigned by Strava
-
 # create the authentication token
-stoken <- httr::config(token = strava_oauth(app_name, app_client_id, app_secret))
+stoken <- httr::config(token = strava_oauth(Sys.getenv("strava_app_name"), 
+                                            Sys.getenv("strava_app_client_id"), 
+                                            Sys.getenv("strava_app_secret")))
 
 # get a list of all my activities
 my_acts <- get_activity_list(stoken)
 
 # create an activity summary then only look at Runs
-run_summary <- compile_activities(my_acts, units = "imperial") %>%
+run_summary <- compile_activities(my_acts) %>%
   filter(type == "Run")
 run_summary$start_date <- ymd_hms(run_summary$start_date)
   
