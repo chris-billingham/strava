@@ -9,6 +9,7 @@ library(tidyverse)
 library(gganimate)
 library(lubridate)
 library(RColorBrewer)
+library(geosphere)
 
 rochdale_10k <- run_summary %>%
   filter(substr(name,1,8) == "Rochdale") %>%

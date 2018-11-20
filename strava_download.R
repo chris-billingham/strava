@@ -20,9 +20,13 @@ my_acts <- get_activity_list(stoken)
 
 # create an activity summary then only look at Runs
 run_summary <- compile_activities(my_acts) %>%
-  filter(type == "Run")
+  filter(type == "Run") 
+
+%>%
+  mutate
 run_summary$start_date <- ymd_hms(run_summary$start_date)
-  
+
+pboptions(nout = 1000)
 # get all the best efforts for every activity and add the start dates
 # let's do it two ways
 all_best <- pblapply(run_summary$id, tidy_best_efforts) %>% 
