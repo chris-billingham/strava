@@ -112,3 +112,19 @@ tidy_weather <- function(id) {
   return(weather_start)
   
 }
+
+pretty_pace <- function(pace, unit = "imperial") {
+  if(!is.numeric(pace) && !is.integer(pace)) stop('Pace must be either a numeric or integer variable')
+  mins <- floor(pace)
+  seconds <- formatC((pace - mins) * 60, width = 2, format = "d", flag = "0")
+  pretty_pace <- paste0(as.character(mins), ":", seconds, ifelse(unit == "imperial", " min/mi", " min/km"))
+  return(pretty_pace)
+}
+
+pretty_time <- function(pace) {
+  if(!is.numeric(pace) && !is.integer(pace)) stop('Pace must be either a numeric or integer variable')
+  mins <- floor(pace)
+  seconds <- formatC((pace - mins) * 60, width = 2, format = "d", flag = "0")
+  pretty_pace <- paste0(as.character(mins), ":", seconds)
+  return(pretty_pace)
+}

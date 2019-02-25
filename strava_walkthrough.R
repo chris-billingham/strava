@@ -4,6 +4,8 @@ library(rStrava)
 library(lubridate)
 library(scales)
 
+source("strava_functions.R")
+
 # in here put in how to get a Strava developers key
 
 # create the authentication token, if we haven't cached then cache, otherwise use the cache
@@ -25,11 +27,38 @@ run_summary <- compile_activities(my_acts, units = "imperial") %>%
 # interesting. however we only want runs that i did during my last work
 # i am a man of routine so i have a set naming structure
 rochdale_10k <- run_summary %>%
-  filter(substr(name,1,8) == "Rochdale") %>%
+  filter(str_detect(name, "Rochdale")) %>%
   filter(distance > 6.15, distance < 6.5) %>%
   mutate(average_pace = 60 / average_speed,
          start_date = ymd_hms(start_date),
          start_date_local = ymd_hms(start_date_local))
+
+# let's pull out the times of all these runs and visualise it
+rochdale_10k %>%
+  mutate(time_of_run = hour(start_date_local) + minute(start_date_local)/60) %>%
+  ggplot(aes(time_of_run)) +
+  geom_histogram(bins = 36) +
+  scale_x_continuous(labels = function(x) pretty_time(x), limits = c(11, 15), breaks = seq(11, 15, 0.5)) +
+  labs(title = "10Ks by start time whilst at N Brown",
+       y = "Frequency",
+       x = "Time of start of run")
+
+# let's see if i like any days of the week
+rochdale_10k %>%
+  mutate(day_of_run = wday(start_date_local, label = TRUE)) %>%
+  ggplot(aes(day_of_run)) + geom_histogram(stat = "count")
+
+# combine the two. wow I like to run on a Monday just before 13:30...
+rochdale_10k %>%
+  mutate(day_of_run = wday(start_date_local, label = TRUE),
+         time_of_run = hour(start_date_local) + minute(start_date_local)/60) %>%
+  ggplot(aes(time_of_run)) +
+  geom_histogram(bins = 36) +
+  facet_wrap(~day_of_run) +
+  scale_x_continuous(labels = function(x) pretty_time(x), limits = c(11, 15), breaks = seq(11, 15, 0.5)) +
+  labs(title = "10Ks by start time whilst at N Brown by day of the week",
+       y = "Frequency",
+       x = "Time of start of run")
 
 # let's look at how that's distributed over time
 rochdale_10k %>% 
@@ -45,13 +74,7 @@ rochdale_10k %>%
 
 # hey October 17 was good! It is all very up and down, there's no real consistency
 # let's look at pace, here higher is slower. first i need to create a function that makes pace pretty
-pretty_pace <- function(pace, unit = "imperial") {
-  if(!is.numeric(pace) && !is.integer(pace)) stop('Pace must be either a numeric or integer variable')
-  mins <- floor(pace)
-  seconds <- formatC((pace - mins) * 60, width = 2, format = "d", flag = "0")
-  pretty_pace <- paste0(as.character(mins), ":", seconds, ifelse(unit == "imperial", " min/mi", " min/km"))
-  return(pretty_pace)
-}
+
 
 # right let's look at pace per month
 rochdale_10k %>% 

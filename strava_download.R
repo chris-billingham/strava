@@ -22,9 +22,6 @@ my_acts <- get_activity_list(stoken)
 run_summary <- compile_activities(my_acts) %>%
   filter(type == "Run") 
 
-%>%
-  mutate
-run_summary$start_date <- ymd_hms(run_summary$start_date)
 
 pboptions(nout = 1000)
 # get all the best efforts for every activity and add the start dates
@@ -33,8 +30,16 @@ all_best <- pblapply(run_summary$id, tidy_best_efforts) %>%
   bind_rows() %>%
   left_join(run_summary[, c("id","start_date")])
 
+all_best$moving_mins <- all_best$moving_time/60
+all_best$elapsed_mins <- all_best$elapsed_time/60
 all_best$start_date <- ymd_hms(all_best$start_date)
-all_best$pr_rank <- as.ordered(all_best$pr_rank)
+
+all_best <- all_best %>% 
+  group_by(distance) %>% 
+  arrange(elapsed_mins) %>% 
+  mutate(elapsed_rank = row_number()) %>% 
+  arrange(moving_mins) %>% 
+  mutate(moving_rank = row_number())
 
 # create a DF with all data from all activity streams
 all_stream <- pblapply(run_summary$id, tidy_stream) %>%
