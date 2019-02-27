@@ -11,22 +11,22 @@ library(lubridate)
 library(RColorBrewer)
 library(geosphere)
 
-rochdale_10k <- run_summary %>%
+rochdale_10k_mini <- run_summary %>%
   filter(substr(name,1,8) == "Rochdale") %>%
-  filter(distance > 10, distance < 12) %>%
+  filter(distance > 6.15, distance < 6.5) %>%
   arrange(elapsed_time) %>%
   mutate(rank = row_number()) %>%
   select(id, rank, elapsed_time, start_date)
 
-rochdale_stream <- all_stream %>%
-  inner_join(rochdale_10k) %>%
-  arrange(rank, time) 
+rochdale_streams <- rochdale_10k_streams %>%
+  left_join(rochdale_10k_mini, by = "id") %>%
+  mutate(start_date = ymd_hms(start_date))
 
-starter <- rochdale_stream %>%
+starter <- rochdale_streams %>%
   filter(time == 0) %>%
   select(id, lat, lng)
 
-ender <- rochdale_stream %>%
+ender <- rochdale_streams %>%
   group_by(id) %>% 
   filter(time == max(time)) %>%
   ungroup() %>%
@@ -35,23 +35,27 @@ ender <- rochdale_stream %>%
 colnames(starter) <- c("id", "start_lat", "start_lng")
 colnames(ender) <- c("id", "end_lat", "end_lng")
 
-rochdale_stream %>%
+rochdale_streams %>%
   inner_join(ender) %>%
-  mutate(distance_start = 111.045 * sqrt((lat-end_lat)^2 + (lng-end_lng)^2)) %>%
+  mutate(distance_end = pmap_dbl(., ~
+                           distm(x = c(..17, ..16), y = c(..10, ..9), fun = distHaversine))/1000) %>%
   #filter(velocity_smooth > 2, velocity_smooth < 4) %>%
-  ggplot(aes(start_date, distance_start, colour = velocity_smooth)) +
+  ggplot(aes(start_date, distance_end, colour = velocity_smooth)) +
   geom_jitter(show.legend = FALSE) +
   scale_colour_gradient2() +
-  labs(title = 'Time in seconds: {frame_time}', x = 'All 10Ks on Rochdale Canal', y = 'Distance Travelled from Start') +
+  labs(title = 'Time in seconds: {frame_time}', x = 'All 10Ks on Rochdale Canal', y = 'Distance Travelled from End') +
   transition_time(time)
 
-rochdale_stream %>%
+rochdale_streams %>%
   inner_join(starter) %>%
-  mutate(distance_start = 111.045 * sqrt((lat-start_lat)^2 + (lng-start_lng)^2)) %>%
+  mutate(distance_end = pmap_dbl(., ~
+                                   distm(x = c(..17, ..16), y = c(..10, ..9), fun = distHaversine))/1000) %>%
   #filter(velocity_smooth > 2, velocity_smooth < 4) %>%
-  ggplot(aes(distance_start, altitude, colour = velocity_smooth)) +
+  ggplot(aes(distance_end, altitude, colour = month(start_date))) +
   geom_jitter(show.legend = FALSE) +
   scale_colour_gradient2() +
-  labs(title = 'All Rochdale Canal 10Ks - Time in seconds: {frame_time}', x = 'Distance Traveled from the Start', y = 'Elevation') +
+  labs(title = 'All Rochdale Canal 10Ks - Time in seconds: {frame_time}', 
+       x = 'Distance Traveled from the End', 
+       y = 'Elevation') +
   transition_time(time)
 

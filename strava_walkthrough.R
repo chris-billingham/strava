@@ -46,16 +46,20 @@ rochdale_10k %>%
 # let's see if i like any days of the week
 rochdale_10k %>%
   mutate(day_of_run = wday(start_date_local, label = TRUE)) %>%
-  ggplot(aes(day_of_run)) + geom_histogram(stat = "count")
+  ggplot(aes(day_of_run)) + geom_histogram(stat = "count") +
+  labs(title = "10Ks by day of the weel whilst at N Brown",
+       y = "Frequency",
+       x = "Day of Run")
 
 # combine the two. wow I like to run on a Monday just before 13:30...
 rochdale_10k %>%
   mutate(day_of_run = wday(start_date_local, label = TRUE),
          time_of_run = hour(start_date_local) + minute(start_date_local)/60) %>%
   ggplot(aes(time_of_run)) +
-  geom_histogram(bins = 36) +
+  geom_histogram(bins = 12) +
   facet_wrap(~day_of_run) +
-  scale_x_continuous(labels = function(x) pretty_time(x), limits = c(11, 15), breaks = seq(11, 15, 0.5)) +
+  scale_x_continuous(labels = function(x) pretty_time(x), limits = c(12.5, 14.5), breaks = seq(12.5, 14.5, 0.5)) +
+  scale_y_continuous(breaks = seq(0, 10, 2)) +
   labs(title = "10Ks by start time whilst at N Brown by day of the week",
        y = "Frequency",
        x = "Time of start of run")
@@ -67,7 +71,8 @@ rochdale_10k %>%
   ggplot(aes(month, freq)) +
     geom_col() +
     scale_x_datetime(date_breaks = "1 months", labels = date_format("%b %Y")) +
-    theme(axis.text.x = element_text(angle = 25, vjust = 1.0, hjust = 1.0)) +
+    scale_y_continuous(breaks = seq(0, 16, 2)) +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1.0, hjust = 1.0)) +
     labs(title = "10Ks per month over time at N Brown",
          y = "Frequency per month",
          x = "Month and Year")
@@ -106,9 +111,6 @@ rochdale_10k %>%
 
 # time to get more into the detail
 # i want the stream data for this, however by using dplyr filters I lose the actframe class
-# from my subset so I have to add that back in
-rochdale_10k <- structure(.Data = rochdale_10k, class = c("actframe", "data.frame"))
-
 # now we should be able to pass this to get_activity_streams to get all the well activity streams
 rochdale_10k_streams <- get_activity_streams(rochdale_10k, stoken)
 
@@ -119,7 +121,7 @@ rochdale_10k_streams <- rochdale_10k_streams %>%
 ### use patchwork to put these two charts side by side
 
 # heart rate through the course of a run
-strrochdale_10k_streams %>%
+rochdale_10k_streams %>%
   filter(moving == TRUE) %>%
   filter(pace_smooth < 15) %>%
   ggplot(aes(distance, heartrate)) +
@@ -131,23 +133,12 @@ rochdale_10k_streams %>%
   filter(moving == TRUE) %>%
   filter(pace_smooth < 15) %>%
   ggplot(aes(distance, pace_smooth)) +
-    geom_point(alpha = 0.01) + 
-    geom_smooth() +
-    scale_y_continuous(labels = function(x) pretty_pace(x), limits = c(5, 15), breaks = seq(5, 15, 1))
+    geom_point(alpha = 0.0025) + 
+    geom_smooth(span = 0.1, colour = "blue") +
+    scale_y_continuous(labels = function(x) pretty_pace(x), limits = c(5, 12), breaks = seq(5, 12, 1))
 
 
-# so i tend to set off a bit fast, slow down to steady, then speed up over time to the end. maybe with a lull
+17# so i tend to set off a bit fast, slow down to steady, then speed up over time to the end. maybe with a lull
 # just before the last dash, but then the last dash is legging it. interesting
 
 
-
-
-
-
-%>%
-  arrange(elapsed_time) %>%
-  mutate(rank = row_number()) %>%
-  select(id, rank, elapsed_time, start_date)
-
-
-rochdale_10k_stream <- get_activity_streams(run_summary, stoken)
