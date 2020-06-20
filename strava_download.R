@@ -1,25 +1,15 @@
-# devtools::install_github("fawda123/rStrava")
-
-
-library(rStrava)
-library(fossil)
 library(tidyverse)
-library(pbapply)
-library(lubridate)
-library(darksky)
-library(janitor)
-library(magrittr)
+library(rStrava)
 
-# create the authentication token
-stoken <- httr::config(token = strava_oauth(Sys.getenv("strava_app_name"), 
-                                            Sys.getenv("strava_app_client_id"), 
-                                            Sys.getenv("strava_app_secret")))
+# get the authetication token and refresh it
+stoken <- httr::config(token = readRDS('.httr-oauth')[[1]])
+stoken$auth_token$refresh()
 
 # get a list of all my activities
 my_acts <- get_activity_list(stoken)
 
 # create an activity summary then only look at Runs
-run_summary <- compile_activities(my_acts) %>%
+run_summary <- compile_activities(my_acts, units = "imperial") %>%
   filter(type == "Run") 
 
 

@@ -3,13 +3,10 @@ tidy_best_efforts <- function(id) {
 
 # get the activity details
 df <- get_activity(id, stoken)
-  
-# ok how many best efforts do we have
-efforts <- length(df$best_efforts)
 
 # pluck out the relevant data we want
-all_efforts <- data.frame(
-  id = rep(id, efforts),
+all_efforts <- tibble(
+  id = id,
   name = map_chr(df$best_efforts, "name"),
   distance = map_int(df$best_efforts, "distance"),
   elapsed_time = map_int(df$best_efforts, "elapsed_time"),
