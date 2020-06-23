@@ -1,9 +1,13 @@
 library(tidyverse)
 library(lubridate)
+library(pbapply)
 library(rStrava)
 
+# load in strava functions i made
+source("/home/pi/hdd/R/xx_strava-functions.R")
+
 # get the authetication token and refresh it
-stoken <- httr::config(token = readRDS('.httr-oauth')[[1]])
+stoken <- httr::config(token = readRDS('/home/pi/hdd/R/strava/.httr-oauth')[[1]])
 stoken$auth_token$refresh()
 
 # get a list of all my activities
