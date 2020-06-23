@@ -16,67 +16,12 @@ all_efforts <- tibble(
   pr_rank = map_int(df$best_efforts, "pr_rank", .null = NA_integer_)
 )
 
+# wait 9 secs to not hit the rate limit
+Sys.sleep(9)
+
 return(all_efforts)
 }
 
-tidy_stream <- function(id) {
-  # import the stream from strava
-  
-  stream <- get_streams(stoken, id, types = list('time','latlng','distance','altitude','velocity_smooth','heartrate','cadence','moving','grade_smooth'))
-  
-  # start the clock so we don't hit the rate limit
-  start <- Sys.time()
-  
-  # how many variables are we processing
-  vars <- length(stream)
-  
-  # how many observations
-  obs <- stream[[1]]$original_size
-  
-  # let's set up our stream_df
-  stream_df <- as.tibble(rep(id, obs))
-  colnames(stream_df) <- "id"
-  
-  # time to loop through all the variables
-  for (lp in 1:vars) {
-    
-    # latlng is the only var that is wider than 1 dimension so we have to create a special bit
-    if (stream[[lp]]$type == "latlng") {
-    
-      # in essence i flatten the data and then split through it in twos to two variables and retibble
-      temp <- stream[[lp]]$data %>%
-        flatten()
-      lat <- temp %>%
-        .[seq(1, length(.) -1, 2)] %>%
-        unlist() %>%
-        as.tibble()
-      lng <- temp %>%
-        .[seq(2, length(.), 2)] %>%
-        unlist() %>%
-        as.tibble()
-      
-      data <- bind_cols(lat, lng)
-      colnames(data) <- c("lat","lng")
-    } else {
-      # if it's just the one variable it's a touch easier
-      
-      data <- stream[[lp]]$data %>%
-        unlist() %>%
-        as.tibble()
-      
-      colnames(data) <- stream[[lp]]$type
-    }
-    
-    # smash them all together
-    stream_df <- bind_cols(stream_df, data)
-  }
-  
-  # pause if this has taken longer than 1.5 seconds
-  if(as.double(Sys.time() - start) < 1.5) {
-    Sys.sleep(1.5-(as.double(Sys.time() - start)))
-  }
-  return(stream_df)
-}
 
 tidy_weather <- function(id) {
   id_test <- id
