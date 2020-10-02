@@ -38,7 +38,7 @@ get_streams_df <- function(row, df) {
 
 # get rid of any we already have
 run_small <- run_summary %>% 
-  anti_join(all_stream, by = "id")
+  anti_join(old_stream, by = "id")
 
 # check for how many rows, if more than 100 only get 100
 if(nrow(run_small) > 100){
