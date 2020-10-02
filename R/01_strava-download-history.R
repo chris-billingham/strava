@@ -4,10 +4,10 @@ library(pbapply)
 library(rStrava)
 
 # load in strava functions i made
-source("/home/pi/hdd/R/xx_strava-functions.R")
+source("~/usb/R/strava/R/xx_strava-functions.R")
 
 # get the authetication token and refresh it
-stoken <- httr::config(token = readRDS('/home/pi/hdd/R/strava/.httr-oauth')[[1]])
+stoken <- httr::config(token = readRDS('~/usb/R/strava/.httr-oauth')[[1]])
 stoken$auth_token$refresh()
 
 # get a list of all my activities
@@ -34,7 +34,6 @@ get_streams_df <- function(row, df) {
   new_df <- df[row,]
   df_stream <- get_activity_streams(new_df, stoken)
   # wait 9 secs to not hit the rate limit
-  Sys.sleep(9)
   return(df_stream)
 }
 
