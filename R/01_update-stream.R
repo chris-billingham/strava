@@ -2,6 +2,7 @@ library(tidyverse)
 library(lubridate)
 library(pbapply)
 library(rStrava)
+library(glue)
 
 # load in strava functions i made
 source("~/usb/R/strava/R/xx_strava-functions.R")
@@ -21,7 +22,7 @@ run_summary <- compile_activities(my_acts, units = "imperial") %>%
   filter(type == "Run") 
 
 # read in current stream file
-old_stream <- readRDS("data/all_stream.rds")
+old_stream <- readRDS("~/usb/R/strava/data/all_stream.rds")
 
 # create the stream function
 get_streams_df <- function(row, df) {
@@ -68,7 +69,7 @@ if(rows > 0) {
   
   # save to hdd
   print(glue("05. saving to hdd"))
-  saveRDS(new_df, "data/all_stream.rds")
+  saveRDS(new_df, "~/usb/R/strava/data/all_stream.rds")
 }
 # fin
 
