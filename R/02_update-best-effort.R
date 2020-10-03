@@ -22,11 +22,11 @@ run_summary <- compile_activities(my_acts, units = "imperial") %>%
   filter(type == "Run") 
 
 # read in current stream file
-old_best_efforts <- readRDS("~/usb/R/strava/data/all_best.rds")
+old_best <- readRDS("~/usb/R/strava/data/all_best.rds")
 
 # get rid of any we already have
 run_small <- run_summary %>% 
-  anti_join(old_best_efforts, by = "id")
+  anti_join(old_best, by = "id")
 
 # check for how many rows, if more than 100 only get 100
 if(nrow(run_small) > 100){
