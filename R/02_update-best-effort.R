@@ -1,8 +1,9 @@
-library(tidyverse)
-library(lubridate)
-library(pbapply)
-library(rStrava)
-library(glue)
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(lubridate)
+  library(rStrava)
+  library(glue)
+})
 
 # load in strava functions i made
 source("~/usb/R/strava/R/xx_strava-functions.R")
@@ -37,9 +38,9 @@ if(nrow(run_small) > 100){
 
 # get the data
 if(rows > 0){
-  print(glue("04. getting {rows} of new data"))
+  print(glue("04. getting {rows} activities worth of new data"))
   all_best <- map_dfr(run_small$id[1:rows], tidy_best_efforts) %>%
-    left_join(run_summary[, c("id","start_date")]) %>%
+    left_join(run_summary[, c("id","start_date")], by = "id") %>%
     mutate(moving_mins = moving_time/60,
            elapsed_mins = elapsed_time/60,
            start_date = ymd_hms(start_date))
