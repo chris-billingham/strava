@@ -51,19 +51,19 @@ if(nrow(run_small) > 100){
 # create a DF with all data from all activity streams
 if(rows > 0) {
   print(glue("04. getting {rows} activities worth of new data"))
+  
+  # set up columns we want
+  cols <- c("id", "time", "moving", "cadence", "distance", "lat", "lng", "heartrate", 
+            "velocity_smooth", "altitude", "grade_smooth")
+  
+  # get the stream, we have to be a bit faffier with the select and rename because for my older runs
+  # i didn't have cadence or heartrate as my phone didn't track so we just need to cover ourselves for
+  # missing columns
   all_stream <- map_dfr(seq(1, rows, 1), get_streams_df, df = run_small) %>%
-    select(id = id,
-           time_s = time,
-           moving = moving,
-           cadence = cadence,
-           distance_mi = distance,
-           lat = lat,
-           lng = lng,
-           heartrate_bpm = heartrate,
-           velocity_smooth_mph = velocity_smooth,
-           altitude_ft = altitude,
-           grade_smooth_pct = grade_smooth
-    )
+    select(any_of(cols)) %>%
+    rename_all(recode, id = "id", time = "time_s", moving = "moving", cadence = "cadence", distance = "distance_mi",
+               lat = "lat", lng = "lng", heartrate = "heartrate_bpm", velocity_smooth = "velocity_smooth_mph",
+               altitude = "altitude_ft", grade_smooth = "grade_smooth_pct")
   
   # bind the old with the new
   new_df <- bind_rows(old_stream, all_stream)
