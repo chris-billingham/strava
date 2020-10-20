@@ -3,14 +3,15 @@ suppressPackageStartupMessages({
   library(lubridate)
   library(rStrava)
   library(glue)
+  library(here)
 })
 
 # load in strava functions i made
-source("~/usb/R/strava/R/xx_strava-functions.R")
+source(here("R/xx_strava-functions.R"))
 
 # get the authetication token and refresh it
 print(glue("01. refreshing auth token"))
-stoken <- httr::config(token = readRDS('~/usb/R/strava/.httr-oauth')[[1]])
+stoken <- httr::config(token = readRDS(here(".httr-oauth"))[[1]])
 stoken$auth_token$refresh()
 
 # get a list of all my activities
@@ -23,7 +24,7 @@ run_summary <- compile_activities(my_acts, units = "imperial") %>%
   filter(type == "Run") 
 
 # read in current stream file
-old_best <- readRDS("~/usb/R/strava/data/all_best.rds")
+old_best <- readRDS(here("data/all_best.rds"))
 
 # get rid of any we already have
 run_small <- run_summary %>% 
@@ -50,6 +51,6 @@ if(rows > 0){
   
   # save to hdd
   print(glue("05. saving to hdd"))
-  saveRDS(new_df, "~/usb/R/strava/data/all_best.rds")
+  saveRDS(new_df, here("data/all_best.rds"))
 }
 # fin
