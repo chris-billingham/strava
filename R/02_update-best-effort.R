@@ -37,9 +37,9 @@ if(nrow(run_small) > 100){
   rows <- nrow(run_small)
 }
 
+print(glue("04. getting {rows} activities worth of new data"))
 # get the data
 if(rows > 0){
-  print(glue("04. getting {rows} activities worth of new data"))
   all_best <- map_dfr(run_small$id[1:rows], tidy_best_efforts) %>%
     left_join(run_summary[, c("id","start_date")], by = "id") %>%
     mutate(moving_mins = moving_time/60,

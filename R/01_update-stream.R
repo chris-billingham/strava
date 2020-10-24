@@ -49,10 +49,10 @@ if(nrow(run_small) > 100){
   rows <- nrow(run_small)
 }
 
+print(glue("04. getting {rows} activities worth of new data"))
 # create a DF with all data from all activity streams
 if(rows > 0) {
-  print(glue("04. getting {rows} activities worth of new data"))
-  
+
   # set up columns we want
   cols <- c("id", "time", "moving", "cadence", "distance", "lat", "lng", "heartrate", 
             "velocity_smooth", "altitude", "grade_smooth")

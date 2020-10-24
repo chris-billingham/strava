@@ -16,6 +16,19 @@ all_efforts <- tibble(
   pr_rank = map_int(df$best_efforts, "pr_rank", .null = NA_integer_)
 )
 
+if(nrow(all_efforts) == 0){
+  all_efforts <- tibble(
+    id = id,
+    name = NA_character_,
+    distanct = NA_integer_,
+    elapsed_time = NA_integer_,
+    moving_time = NA_integer_,
+    start_index = NA_integer_,
+    end_index = NA_integer_,
+    pr_rank = NA_integer_
+  )
+}
+
 # wait 9 secs to not hit the rate limit
 Sys.sleep(9)
 
