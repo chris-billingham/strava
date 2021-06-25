@@ -6,7 +6,7 @@ suppressPackageStartupMessages({
   library(here)
 })
 
-# load in strava functions i made
+# load in strava functions i made for this
 source(here("R/xx_strava-functions.R"))
 
 # get the authetication token and refresh it
