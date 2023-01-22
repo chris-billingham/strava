@@ -1,5 +1,7 @@
 suppressPackageStartupMessages({
   library(tidyverse)
+  library(logger)
+  library(fs)
   library(lubridate)
   library(rStrava)
   library(glue)
@@ -9,10 +11,21 @@ suppressPackageStartupMessages({
 # load in strava functions i made for this
 source(here("R/xx_strava-functions.R"))
 
-# get the authetication token and refresh it
-print(glue("01. refreshing auth token"))
-stoken <- httr::config(token = readRDS(here(".httr-oauth"))[[1]])
-stoken$auth_token$refresh()
+# get the authentication token and refresh it
+logger::log_info("01. refreshing auth token")
+
+# if we don't have an auth token, go get one, otherwise refresh what we have
+if(!fs::file_exists(here::here(".httr-oauth"))){
+  stoken <- httr::config(token = strava_oauth(app_name = Sys.getenv("strava_app_name"), 
+                                              app_client_id = Sys.getenv("strava_app_client_id"), 
+                                              app_secret = Sys.getenv("strava_app_secret"), 
+                                              app_scope = "activity:read_all",
+                                              cache = TRUE))
+} else {
+  stoken <- httr::config(token = readRDS(here(".httr-oauth"))[[1]])
+  stoken$auth_token$refresh()
+}
+
 
 # get a list of all my activities
 print(glue("02. getting list of all activities"))
