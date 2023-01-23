@@ -1,15 +1,3 @@
-suppressPackageStartupMessages({
-  library(tidyverse)
-  library(logger)
-  library(fs)
-  library(lubridate)
-  library(rStrava)
-  library(glue)
-  library(here)
-})
-
-# load in strava functions i made for this
-source(here::here("R/xx_strava-functions.R"))
 
 # get the authentication token and refresh it
 logger::log_info("01. refreshing auth token")
@@ -25,7 +13,6 @@ if(!fs::file_exists(here::here(".httr-oauth"))){
   stoken <- httr::config(token = readRDS(here::here(".httr-oauth"))[[1]])
   stoken$auth_token$refresh()
 }
-
 
 # get a list of all my activities
 logger::log_info("02. getting list of all activities")
