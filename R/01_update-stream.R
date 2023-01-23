@@ -16,12 +16,14 @@ if(!fs::file_exists(here::here(".httr-oauth"))){
 
 # get a list of all my activities
 logger::log_info("02. getting list of all activities")
-my_acts <-rStrava::get_activity_list(stoken)
+my_acts <- rStrava::get_activity_list(stoken)
 
 # create an activity summary then only look at Runs
 logger::log_info("03. compiling activities")
 run_summary <- rStrava::compile_activities(my_acts, units = "imperial") %>%
+  # only get runs
   dplyr::filter(type == "Run") %>%
+  # only get runs with speed (where it's 0 means treadmill)
   dplyr::filter(max_speed > 0)
 
 # read in current stream file
