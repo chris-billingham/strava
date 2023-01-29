@@ -1,3 +1,17 @@
+strava_refresh_token <- function() {
+# if we don't have an auth token, go get one, otherwise refresh what we have
+if(!fs::file_exists(here::here(".httr-oauth"))){
+  stoken <- httr::config(token = strava_oauth(app_name = Sys.getenv("strava_app_name"), 
+                                              app_client_id = Sys.getenv("strava_app_client_id"), 
+                                              app_secret = Sys.getenv("strava_app_secret"), 
+                                              app_scope = "activity:read_all",
+                                              cache = TRUE))
+} else {
+  stoken <- httr::config(token = readRDS(here::here(".httr-oauth"))[[1]])
+  stoken$auth_token$refresh()
+}
+}
+
 # process all the best efforts for a tidy dataframe
 tidy_best_efforts <- function(id) {
 
