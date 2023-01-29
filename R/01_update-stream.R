@@ -27,7 +27,7 @@ run_summary <- rStrava::compile_activities(my_acts, units = "imperial") %>%
   dplyr::filter(max_speed > 0)
 
 # read in current stream file
-old_stream <- readRDS(here::here("data/all_stream.rds"))
+old_stream <- readRDS(here::here("data/all_stream.parquet"))
 
 # create the stream function
 get_streams_df <- function(row, df) {
@@ -74,7 +74,7 @@ if(rows > 0) {
   
   # save to hdd
   logger::log_info("05. saving to hdd")
-  saveRDS(new_df, here::here("data/all_stream.rds"))
+  saveRDS(new_df, here::here("data/all_stream.parquet"))
 }
 # fin
 
