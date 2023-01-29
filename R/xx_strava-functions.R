@@ -2,22 +2,22 @@
 tidy_best_efforts <- function(id) {
 
 # get the activity details
-df <- get_activity(id, stoken)
+df <- rStrava::get_activity(id, stoken)
 
 # pluck out the relevant data we want
-all_efforts <- tibble(
+all_efforts <- tibble::tibble(
   id = id,
-  name = map_chr(df$best_efforts, "name"),
-  distance = map_int(df$best_efforts, "distance"),
-  elapsed_time = map_int(df$best_efforts, "elapsed_time"),
-  moving_time = map_int(df$best_efforts, "moving_time"),
-  start_index = map_int(df$best_efforts, "start_index"),
-  end_index = map_int(df$best_efforts, "end_index"),
-  pr_rank = map_int(df$best_efforts, "pr_rank", .null = NA_integer_)
+  name = purrr::map_chr(df$best_efforts, "name"),
+  distance = purrr::map_int(df$best_efforts, "distance"),
+  elapsed_time = purrr::map_int(df$best_efforts, "elapsed_time"),
+  moving_time = purrr::map_int(df$best_efforts, "moving_time"),
+  start_index = purrr::map_int(df$best_efforts, "start_index"),
+  end_index = purrr::map_int(df$best_efforts, "end_index"),
+  pr_rank = purrr::map_int(df$best_efforts, "pr_rank", .null = NA_integer_)
 )
 
 if(nrow(all_efforts) == 0){
-  all_efforts <- tibble(
+  all_efforts <- tibble::tibble(
     id = id,
     name = NA_character_,
     distanct = NA_integer_,
