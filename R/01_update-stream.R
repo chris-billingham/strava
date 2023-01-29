@@ -20,14 +20,14 @@ my_acts <- rStrava::get_activity_list(stoken)
 
 # create an activity summary then only look at Runs
 logger::log_info("03. compiling activities")
-run_summary <- rStrava::compile_activities(my_acts, units = "imperial") %>%
+run_summary <- rStrava::compile_activities(my_acts, units = "imperial") |>
   # only get runs
-  dplyr::filter(type == "Run") %>%
+  dplyr::filter(type == "Run") |>
   # only get runs with speed (where it's 0 means treadmill)
   dplyr::filter(max_speed > 0)
 
 # read in current stream file
-old_stream <- readRDS(here::here("data/all_stream.parquet"))
+old_stream <- arrow::read_parquet(here::here("data/all_stream.parquet"))
 
 # create the stream function
 get_streams_df <- function(row, df) {
@@ -42,7 +42,7 @@ get_streams_df <- function(row, df) {
 }
 
 # get rid of any we already have
-run_small <- run_summary %>% 
+run_small <- run_summary |>
   dplyr::anti_join(old_stream, by = "id")
 
 # check for how many rows, if more than 100 only get 100
@@ -63,9 +63,9 @@ if(rows > 0) {
   # get the stream, we have to be a bit faffier with the select and rename because for my older runs
   # i didn't have cadence or heartrate as my phone didn't track so we just need to cover ourselves for
   # missing columns
-  all_stream <- purrr::map_dfr(seq(1, rows, 1), get_streams_df, df = run_small, .progress = TRUE) %>%
-    dplyr::select(dplyr::any_of(cols)) %>%
-    dplyr::rename_all(recode, id = "id", time = "time_s", moving = "moving", cadence = "cadence", distance = "distance_mi",
+  all_stream <- purrr::map_dfr(seq(1, rows, 1), get_streams_df, df = run_small, .progress = TRUE) |>
+    dplyr::select(dplyr::any_of(cols)) |>
+    dplyr::rename_all(dplyr::recode, id = "id", time = "time_s", moving = "moving", cadence = "cadence", distance = "distance_mi",
                lat = "lat", lng = "lng", heartrate = "heartrate_bpm", velocity_smooth = "velocity_smooth_mph",
                altitude = "altitude_ft", grade_smooth = "grade_smooth_pct")
   
@@ -74,7 +74,7 @@ if(rows > 0) {
   
   # save to hdd
   logger::log_info("05. saving to hdd")
-  saveRDS(new_df, here::here("data/all_stream.parquet"))
+  arrow::write_parquet(new_df, here::here("data/all_stream.parquet"))
 }
 # fin
 
