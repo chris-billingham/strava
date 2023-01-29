@@ -7,28 +7,39 @@ suppressPackageStartupMessages({
 })
 
 # load in strava functions i made
-source(here("R/xx_strava-functions.R"))
+source(here::here("R/xx_strava-functions.R"))
 
-# get the authetication token and refresh it
-print(glue("01. refreshing auth token"))
-stoken <- httr::config(token = readRDS(here(".httr-oauth"))[[1]])
-stoken$auth_token$refresh()
+logger::log_info("01. refreshing auth token")
+# if we don't have an auth token, go get one, otherwise refresh what we have
+if(!fs::file_exists(here::here(".httr-oauth"))){
+  stoken <- httr::config(token = strava_oauth(app_name = Sys.getenv("strava_app_name"), 
+                                              app_client_id = Sys.getenv("strava_app_client_id"), 
+                                              app_secret = Sys.getenv("strava_app_secret"), 
+                                              app_scope = "activity:read_all",
+                                              cache = TRUE))
+} else {
+  stoken <- httr::config(token = readRDS(here::here(".httr-oauth"))[[1]])
+  stoken$auth_token$refresh()
+}
 
 # get a list of all my activities
-print(glue("02. getting list of all activities"))
-my_acts <- get_activity_list(stoken)
+logger::log_info("02. getting list of all activities")
+my_acts <- rStrava::get_activity_list(stoken)
 
 # create an activity summary then only look at Runs
-print(glue("03. compiling activities"))
-run_summary <- compile_activities(my_acts, units = "imperial") %>%
-  filter(type == "Run") 
+logger::log_info("03. compiling activities")
+run_summary <- rStrava::compile_activities(my_acts, units = "imperial") |>
+  # only get runs
+  dplyr::filter(type == "Run") |>
+  # only get runs with speed (where it's 0 means treadmill)
+  dplyr::filter(max_speed > 0)
 
 # read in current stream file
-old_best <- readRDS(here("data/all_best.rds"))
+old_best <- arrow::read_parquet(here::here("data/all_best.parquet"))
 
 # get rid of any we already have
-run_small <- run_summary %>% 
-  anti_join(old_best, by = "id")
+run_small <- run_summary |> 
+  dplyr::anti_join(old_best, by = "id")
 
 # check for how many rows, if more than 100 only get 100
 if(nrow(run_small) > 100){
@@ -37,20 +48,20 @@ if(nrow(run_small) > 100){
   rows <- nrow(run_small)
 }
 
-print(glue("04. getting {rows} activities worth of new data"))
+logger::log_info(glue::glue("04. getting {rows} activities worth of new data"))
 # get the data
 if(rows > 0){
-  all_best <- map_dfr(run_small$id[1:rows], tidy_best_efforts) %>%
-    left_join(run_summary[, c("id","start_date")], by = "id") %>%
-    mutate(moving_mins = moving_time/60,
-           elapsed_mins = elapsed_time/60,
-           start_date = ymd_hms(start_date))
+  all_best <- purrr::map_dfr(run_small$id[1:rows], tidy_best_efforts, .progress = TRUE) |>
+    dplyr::left_join(run_summary[, c("id","start_date")], by = "id") |>
+    dplyr::mutate(moving_mins = moving_time/60,
+                  elapsed_mins = elapsed_time/60,
+                  start_date = lubridate::ymd_hms(start_date))
   
   # bind the old with the new
-  new_df <- bind_rows(old_best, all_best)
+  new_df <- dplyr::bind_rows(old_best, all_best)
   
   # save to hdd
-  print(glue("05. saving to hdd"))
-  saveRDS(new_df, here("data/all_best.rds"))
+  logger::log_info("05. saving to hdd")
+  arrow::write_parquet(new_df, here::here("data/all_best.parquet"))
 }
 # fin
